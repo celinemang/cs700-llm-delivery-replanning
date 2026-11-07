@@ -17,7 +17,7 @@ def test_structure_and_invariants():
     for sev in (1, 3):
         for seed in range(40):
             s = generate_scenario(seed, sev, ENV)
-            assert s.num_nodes == 20
+            assert s.num_nodes == ENV["num_nodes"]
             assert len(s.destinations) == 4 and len(set(s.destinations)) == 4
             assert s.start not in s.destinations
             assert len(s.blocked_edges) == sev

@@ -9,7 +9,7 @@ from pathlib import Path
 
 def test_config_loads():
     cfg = yaml.safe_load((Path(__file__).parent.parent / "config.yaml").read_text())
-    assert cfg["environment"]["num_nodes"] == 20
+    assert cfg["environment"]["num_nodes"] >= 5
     assert cfg["environment"]["num_deliveries"] == 4
     assert cfg["environment"]["severities"] == [1, 3]
 

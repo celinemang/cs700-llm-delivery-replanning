@@ -3,7 +3,7 @@
 status: draft            # draft -> frozen
 
 environment:
-  num_nodes: 20
+  num_nodes: 8
   num_deliveries: 4          # blockage happens after the first delivery -> 3 remain
   avg_degree: 3.0            # spanning tree + extra edges
   edge_length_m: [5, 50]     # positive integers, inclusive
@@ -24,15 +24,17 @@ main:
   precision_halfwidth: 0.10   # 95% CI half-width for the paired success difference
 
 llm:
-  model: claude-haiku-5-5     # tentative; confirm at step 4 and record exact name
+  provider: ollama            # local, free, no API key
+  model: qwen2.5:14b-instruct # exact tag; digest is recorded in data/*/run_meta.json
   temperature: 0.0
+  seed: 0
+  num_ctx: 8192
   max_output_tokens: 1024
   retries_on_invalid_output: 0   # no retries to fix mistakes
   retries_on_transport_error: 3  # fixed policy, transport errors only
-  api_key_env: ANTHROPIC_API_KEY # key is read from the environment, never stored
 
 budget:
-  max_api_cost_usd: 50
+  max_api_cost_usd: 0   # local model; no API charges
   max_work_hours: 40
 
 analysis:
