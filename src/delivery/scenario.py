@@ -150,11 +150,15 @@ def generate_scenario(seed: int, severity: int, env: dict, scenario_id: str | No
     raise RuntimeError(f"no valid scenario for seed={seed} severity={severity}")
 
 
-def make_scenarios(split: str, base_seed: int, n_per_severity: int, env: dict, severities=(1, 3)) -> list:
-    """Balanced scenario set; seed = base + severity*10000 + index."""
+def make_scenarios(split: str, base_seed: int, n_per_severity, env: dict, severities=(1, 3)) -> list:
+    """Scenario set; seed = base + severity*10000 + index.
+
+    `n_per_severity` is an int (same count per severity) or a dict {severity: count}.
+    """
     out = []
     for sev in severities:
-        for i in range(n_per_severity):
+        n = n_per_severity[sev] if isinstance(n_per_severity, dict) else n_per_severity
+        for i in range(n):
             out.append(generate_scenario(base_seed + sev * 10_000 + i, sev, env,
                                          scenario_id=f"{split}-s{sev}-{i:03d}"))
     return out

@@ -1,0 +1,11 @@
+{
+  "frozen": "2026-11-07",
+  "prompt_sha256": "d141badad296aa7ad17736baa1f72e2917e74c35ebe95abf9488df6842e1168f",
+  "config_sha256": "f38ecc72da84fb053871b8c689287561cc9fd35738ee6dd4af449ca64a687d9d",
+  "model": "qwen2.5:14b-instruct",
+  "num_nodes": 8,
+  "planned_per_severity": {
+    "1": 200,
+    "3": 94
+  }
+}

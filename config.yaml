@@ -1,6 +1,6 @@
 # Experiment configuration. Frozen after the pilot (step 6); every later change
 # must be recorded in logs/deviation_log.md.
-status: draft            # draft -> frozen
+status: frozen           # frozen 2026-11-07 after pilot; changes go in logs/deviation_log.md
 
 environment:
   num_nodes: 8
@@ -22,6 +22,9 @@ main:
   max_scenarios_per_severity: 200
   min_sessions: 3
   precision_halfwidth: 0.10   # 95% CI half-width for the paired success difference
+  planned_per_severity:       # from the pilot (logs/pilot_analysis.md); sev1 hit the cap
+    1: 200
+    3: 94
 
 llm:
   provider: ollama            # local, free, no API key

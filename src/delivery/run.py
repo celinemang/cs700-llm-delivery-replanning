@@ -25,7 +25,8 @@ from .validator import FULL, REPAIR, validate
 def main(argv=None):
     ap = argparse.ArgumentParser()
     ap.add_argument("--split", required=True, help="pilot | main | smoke")
-    ap.add_argument("--n", type=int, required=True, help="scenarios per severity")
+    ap.add_argument("--n", type=int, default=None,
+                    help="scenarios per severity; for 'main' defaults to config main.planned_per_severity")
     ap.add_argument("--session", type=int, default=1)
     ap.add_argument("--sessions", type=int, default=1, help="total sessions the set is divided into")
     ap.add_argument("--base-seed", type=int, default=None)
@@ -34,10 +35,18 @@ def main(argv=None):
     cfg = load_config()
     base = args.base_seed if args.base_seed is not None else {
         "pilot": cfg["seeds"]["pilot_base"], "main": cfg["seeds"]["main_base"]}.get(args.split, 5_000_000)
-    scenarios = make_scenarios(args.split, base, args.n, cfg["environment"])
-    # interleave severities, then deal scenarios to sessions round-robin (severity mixed in every session)
+    if args.n is not None:
+        n_per = args.n
+    elif args.split == "main":
+        n_per = {int(k): v for k, v in cfg["main"]["planned_per_severity"].items()}
+    else:
+        raise SystemExit("--n is required except for --split main")
+    scenarios = make_scenarios(args.split, base, n_per, cfg["environment"])
+    # interleave severities (handles unequal counts), then deal round-robin to sessions
+    from itertools import zip_longest
     by_sev = {s: [x for x in scenarios if x.severity == s] for s in (1, 3)}
-    mixed = [x for pair in zip(by_sev[1], by_sev[3]) for x in pair]
+    mixed = [x for pair in zip_longest(by_sev[1], by_sev[3]) for x in pair if x is not None]
+    assert len(mixed) == len(scenarios)
     mine = [x for i, x in enumerate(mixed) if i % args.sessions == args.session - 1]
 
     out_dir = ROOT / "data" / args.split
