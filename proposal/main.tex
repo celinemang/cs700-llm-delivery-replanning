@@ -1,0 +1,65 @@
+\documentclass[10.5pt]{article}
+\usepackage[letterpaper,margin=0.8in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{4pt}
+\usepackage{titlesec}
+\titleformat{\section}{\large\bfseries}{}{0pt}{}
+\titlespacing*{\section}{0pt}{6pt}{2pt}
+\setlist[itemize]{nosep,leftmargin=1.2em}
+\pagestyle{empty}
+\begin{document}
+\begin{center}
+{\Large\bfseries Comparing Full Replanning and Local Plan Repair\\ for LLM-Based Delivery Robots Under Route Blockages}\\[4pt]
+Celine Mang\\
+Term Project Proposal
+\end{center}
+\vspace{-4pt}
+\section*{1. Motivation and research question}
+A delivery robot sometimes has to change its route when a hallway gets blocked. It can do this in two ways. One way is to make a brand-new plan for all the deliveries that are left. The other way is to keep the delivery order and only fix the route. I will compare these two ways using an LLM in a small simulated delivery world built from a graph. The goal is to understand when repairing an existing plan is useful and when allowing full replanning improves performance. This project tests high-level planning only. It does not test physical navigation or robot control.
+
+Research question: How do full replanning and local plan repair differ in delivery success and travel efficiency after route blockages, and does the difference depend on the number of blocked hallways? I will use synthetic maps and automatic scoring. No people or personal data are involved.
+
+\section*{2. Hypotheses and metrics}
+H1: Full replanning will have a higher delivery success rate than local repair. H2: This success-rate advantage will be larger when three hallways are blocked than when one hallway is blocked. These are hypotheses to test, not results I assume.
+
+The main metric is delivery success (\%). A run counts as a success if the plan is valid and finishes all remaining deliveries within a shared travel budget. The other metrics are: extra travel distance compared with an exact best route (\%), total input and output tokens per planning request (tokens), and the number of times a plan breaks a movement or strategy rule (count). I will compare distance only on scenarios where both methods succeed, but failures stay in the main analysis. I will report how many scenarios go into each comparison.
+
+\section*{3. Pre-registered experimental design}
+Factors: This is a $2\times 2$ design. One factor is strategy (full replanning or local repair). The other is blockage severity (one or three blocked hallways; each blocked hallway is one blocked edge in the map graph). Both strategies get exactly the same information: the current state, the remaining goals, the original plan, the blocked edges, the action rules, and the output format. Full replanning may change both the order of the remaining deliveries and the route. Local repair must keep the order of the remaining deliveries but may change the paths between them. So this study compares these two strategies as I have defined them. ``Local repair'' does not mean a loose instruction to change only a little.
+
+Environment: Python will generate connected, undirected maps with 20 nodes, positive edge lengths in meters, and four delivery destinations. An exact solver will make the first route. The blockage happens after the first delivery. Each map is generated independently and assigned a severity level, keeping the two levels balanced in number. At least one blocked edge must lie on the planned remaining route. Each map must stay connected after the blockage, so both strategies always have a possible route without a distance limit. The travel budget is twice the best possible remaining distance after the blockage, and it is the same for both strategies.
+
+Controls and replication: One scenario (one map, task, and set of blocked edges) is one independent unit. Every scenario is tested with both strategies, which makes a matched pair. I will use one fixed LLM, record its exact model name, and freeze the prompts and decoding settings after the pilot. Each strategy gets one planning request with the same output-token limit and no retries to fix mistakes. The order of the two strategies is randomized within each pair. Severity levels are mixed across at least three collection sessions. Repeated API calls on the same scenario are not counted as independent scenarios.
+
+\section*{4. Pilot and sample-size justification}
+First I will run a separate pilot with 12 independent scenarios per severity level. That is 48 requests across both strategies. The pilot will check how hard the task is, whether outputs can be parsed, whether the travel budget is reasonable, how many tokens are used, and how much results vary. For scenario i, let $D_i$ be the full-replanning success minus the local-repair success; it is $-1$, $0$, or $1$. Within each severity level, my first estimate of the sample size is $n = (1.96\,s_D / 0.10)^2$, rounded up. This aims for a half-width of about 10 percentage points for the paired success difference. I will use at least 30 scenarios per level and check this estimate by resampling the pilot data.
+
+If the pilot shows no cases where the two strategies disagree, I will not treat zero variance as proof of enough precision. Instead, I will revisit how hard the task is and use a cautious upper bound on the variance for planning. My upper limit is 200 main-study scenarios per severity level (800 main requests). If I cannot reach the precision goal within this limit or the API budget, I will report the sample size I can afford and the precision I expect before collecting the main data. Pilot data will not be used in the final confirmatory analysis, and I will log every change.
+
+\section*{5. Planned analysis}
+I will use confidence intervals, paired comparisons, and regression. I will estimate success-rate differences with 95\% bootstrap confidence intervals, resampling whole scenario pairs within each severity level. This keeps the link between the two methods. For H1, I will use an exact McNemar test on the paired success results across the balanced main sample. For H2, I will fit a logistic regression with strategy, severity, and their interaction, using standard errors clustered by scenario. I will report the interaction as the difference between the strategy risk differences at high and low severity, not only as an odds ratio. A Holm correction will cover the two main tests.
+
+I will check for sparse outcome cells, separation, model convergence, and patterns across sessions. If the logistic model is unstable, I will use the stratified paired bootstrap interval for the interaction instead, and I will say clearly that this is an estimation-based backup. Results for travel and tokens will show paired differences with 95\% bootstrap intervals, and I will look at skew and outliers. Secondary analyses are exploratory. I will report null and unexpected results together with effect sizes and uncertainty.
+
+\section*{6. Implementation, feasibility, and limitations}
+I will use Python, NetworkX, an LLM API, and statistics libraries. With three deliveries left, I can find an exact best route by trying every delivery order and joining shortest paths. I will also compute a shortest-path route that keeps the original order. This shows how much extra travel comes from the local-repair rule itself and not from LLM mistakes. The validator will check every edge, the delivery order where required, completion, and the travel budget. Badly formed or invalid model outputs count as failures. Transport errors will be logged and retried under a fixed policy.
+
+My planned budget is 30--40 hours of work and at most \$50 in API charges. I will choose an affordable model and check the expected cost before the pilot. No GPU, physical robot, or 3D simulator is needed. If time runs short, I will drop visualization and extra models but keep both experimental factors. The main limits are synthetic maps, a single model, and my fixed-order definition of repair. The results will not show how real robots perform or apply to every repair method.
+
+\section*{7. Timetable and reproducibility}
+\begin{itemize}
+\item By Nov. 2: submit the proposal and build the scenario generator and validator.
+\item Nov. 3--16: run the pilot, calculate the sample size, review the factorial design, and submit the progress report with pilot data.
+\item Nov. 17--29: collect the main data over several sessions and check the logs.
+\item Nov.\ 30--Dec. 7: finish the analysis and submit the final report.
+\item Dec. 8--14: prepare and give the five-minute presentation.
+\end{itemize}
+
+I will keep the map seeds, prompts, model settings, raw responses, token counts, timestamps, validation results, software versions, and analysis scripts. A dated deviation log will explain every change and how it affects the results. I will disclose AI help with proposal wording and design ideas, and any later help with coding or analysis. I will check the implementation myself and be ready to explain every design choice.
+
+\end{document}
