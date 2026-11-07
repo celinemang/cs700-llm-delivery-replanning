@@ -27,3 +27,14 @@ tokens per planning request, and the number of movement/strategy rule violations
 - `proposal/main.tex` - project proposal (LaTeX)
 
 Code, data, and analysis will be added as the project progresses.
+
+## Setup
+
+```bash
+python3.12 -m venv .venv
+.venv/bin/pip install -r requirements.txt
+export ANTHROPIC_API_KEY=...   # only needed for LLM runs
+.venv/bin/python -m pytest
+```
+
+Experiment parameters live in `config.yaml`; changes after the pilot are recorded in `logs/deviation_log.md`.

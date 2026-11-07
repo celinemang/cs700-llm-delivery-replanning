@@ -1,0 +1,41 @@
+# Experiment configuration. Frozen after the pilot (step 6); every later change
+# must be recorded in logs/deviation_log.md.
+status: draft            # draft -> frozen
+
+environment:
+  num_nodes: 20
+  num_deliveries: 4          # blockage happens after the first delivery -> 3 remain
+  avg_degree: 3.0            # spanning tree + extra edges
+  edge_length_m: [5, 50]     # positive integers, inclusive
+  severities: [1, 3]         # number of blocked edges (one edge = one hallway)
+  budget_multiplier: 2.0     # budget = 2 x best remaining distance after blockage
+
+seeds:
+  pilot_base: 1000
+  main_base: 100000
+
+pilot:
+  scenarios_per_severity: 12
+
+main:
+  min_scenarios_per_severity: 30
+  max_scenarios_per_severity: 200
+  min_sessions: 3
+  precision_halfwidth: 0.10   # 95% CI half-width for the paired success difference
+
+llm:
+  model: claude-haiku-5-5     # tentative; confirm at step 4 and record exact name
+  temperature: 0.0
+  max_output_tokens: 1024
+  retries_on_invalid_output: 0   # no retries to fix mistakes
+  retries_on_transport_error: 3  # fixed policy, transport errors only
+  api_key_env: ANTHROPIC_API_KEY # key is read from the environment, never stored
+
+budget:
+  max_api_cost_usd: 50
+  max_work_hours: 40
+
+analysis:
+  alpha: 0.05
+  bootstrap_resamples: 10000
+  multiple_testing: holm
