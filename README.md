@@ -22,19 +22,56 @@ only, not physical navigation or robot control.
 Delivery success (%), extra travel distance vs. an exact best route (%),
 tokens per planning request, and the number of movement/strategy rule violations.
 
+## Headline result
+
+Both pre-registered hypotheses were rejected. Local repair had a **higher**
+success rate than full replanning (40% vs 30% overall; a +10 percentage-point
+gap, McNemar p = 0.0006), and that gap did **not** grow with blockage severity
+(no interaction, p = 0.82). See [logs/main_analysis.md](logs/main_analysis.md)
+and [RESULTS.md](RESULTS.md).
+
 ## Repository layout
 
 - `proposal/main.tex` - project proposal (LaTeX)
+- `config.yaml` - frozen experiment parameters (map size, severities, model, sample sizes)
+- `src/delivery/` - scenario generator, exact solver, prompts, LLM client, validator, runner
+- `tests/` - unit tests for the generator and validator
+- `analysis/` - diagnostics, calibration sweep, and the confirmatory analysis
+- `data/pilot`, `data/main` - raw responses, per-scenario definitions, and run metadata
+- `logs/` - deviation log, freeze record, pilot and main analysis reports
+- `RESULTS.md` - plain-language summary of the findings
 
-Code, data, and analysis will be added as the project progresses.
+## Model
+
+The planner is a local model served by [Ollama](https://ollama.com)
+(`qwen2.5:14b-instruct`), so the study needs no API key and incurs no API cost.
+The exact model name and digest are recorded in `data/*/run_meta.json`.
 
 ## Setup
 
 ```bash
+# 1. install and start the local model server
+brew install ollama
+ollama serve &
+ollama pull qwen2.5:14b-instruct
+
+# 2. Python environment
 python3.12 -m venv .venv
 .venv/bin/pip install -r requirements.txt
-export ANTHROPIC_API_KEY=...   # only needed for LLM runs
 .venv/bin/python -m pytest
 ```
 
-Experiment parameters live in `config.yaml`; changes after the pilot are recorded in `logs/deviation_log.md`.
+## Reproduce
+
+```bash
+# pilot (sample-size planning)
+PYTHONPATH=src .venv/bin/python -m delivery.run --split pilot --n 12 --sessions 3 --session 1
+PYTHONPATH=src .venv/bin/python analysis/analyze.py pilot
+
+# main study (294 scenarios, 588 requests; resumable)
+PYTHONPATH=src .venv/bin/python -m delivery.run --split main --sessions 3 --session 1
+PYTHONPATH=src .venv/bin/python analysis/analyze.py main
+```
+
+Experiment parameters live in `config.yaml` (frozen after the pilot); every
+change after freezing is recorded in `logs/deviation_log.md`.
