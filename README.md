@@ -75,3 +75,29 @@ PYTHONPATH=src .venv/bin/python analysis/analyze.py main
 
 Experiment parameters live in `config.yaml` (frozen after the pilot); every
 change after freezing is recorded in `logs/deviation_log.md`.
+
+## Running on another machine (e.g. over SSH)
+
+The project is self-contained: no API keys, no absolute paths, and the raw data
+is committed, so the analysis reproduces exactly anywhere.
+
+```bash
+ssh you@host
+git clone https://github.com/celinemang/cs700-llm-delivery-replanning.git
+cd cs700-llm-delivery-replanning
+# install Ollama first: https://ollama.com/download  (then: ollama serve &)
+bash setup.sh                       # venv + deps + model pull + tests
+PYTHONPATH=src .venv/bin/python analysis/analyze.py main   # reproduces the reported numbers
+```
+
+Requirements on the other machine: Python 3.12+, ~10 GB RAM free for the 14B
+model (16 GB total is enough; less will swap and run slowly), and ~9 GB disk for
+the model. Cloning a private repo over SSH needs your GitHub credentials there
+(an SSH key or `gh auth login`); use the `git@github.com:...` remote if you
+prefer SSH keys.
+
+Note on determinism: scenario generation is fully seeded, so the 294 scenarios
+are identical on any machine. The committed responses and all statistics
+reproduce exactly. Re-running the model itself (temperature 0, fixed seed) is
+near-deterministic but may differ slightly across different hardware or Ollama
+versions; the analysis step does not call the model and is exactly reproducible.

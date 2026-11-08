@@ -18,7 +18,7 @@ Dep. Variable:                success   No. Observations:                  588
 Model:                          Logit   Df Residuals:                      584
 Method:                           MLE   Df Model:                            3
 Date:                Sat, 07 Nov 2026   Pseudo R-squ.:                 0.02138
-Time:                        14:43:10   Log-Likelihood:                -371.46
+Time:                        20:36:01   Log-Likelihood:                -371.46
 converged:                       True   LL-Null:                       -379.57
 Covariance Type:              cluster   LLR p-value:                  0.001016
 ==============================================================================
